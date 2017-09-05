@@ -6,24 +6,36 @@ import pandas as pd
 sys.path.insert(0, 'Z:\Python projects\FishbowlAPITestProject')
 import connecttest
 
+
+def run_query(dirPath, sqlFile, excelFile):
+	myresults = connecttest.create_connection(dirPath, sqlFile)
+	myexcel = connecttest.makeexcelsheet(myresults)
+	connecttest.save_workbook(myexcel, dirPath, excelFile)
+
+
+def save_sheet(backlogDF, wbName, dirPath):
+	writer = pd.ExcelWriter(os.path.join(dirPath, wbName))  # Creates a test excel file
+	backlogDF.to_excel(writer, 'Sheet')  # Fills the test excel with the whole timeline
+	writer.save()
+
+
 # Save this file's directory as a string and build other relevant paths
 homey = os.path.abspath(os.path.dirname(__file__))
 sqlPath = os.path.join(homey, 'SQL')
-backlogFilename = 'MfgBacklog.txt'
-
-def run_queries():
-	myresults = connecttest.create_connection(sqlPath, backlogFilename)
-	myexcel = connecttest.makeexcelsheet(myresults)
-	connecttest.save_workbook(myexcel, sqlPath, backlogFilename)
+backlogFilenameTxt = 'MfgBacklog.txt'
+backlogFilenameExcel = 'MfgBacklog.xlsx'
 
 
 
 # Query FB for Mfg center info
-run_queries()
+run_query(sqlPath, backlogFilenameTxt, backlogFilenameExcel)
 
 # Pull query results into pandas
-mfgBacklogFilepath = os.path.join(sqlPath, backlogFilename)
+mfgBacklogFilepath = os.path.join(sqlPath, backlogFilenameExcel)
 mfgBacklog = pd.read_excel(mfgBacklogFilepath, header=0)
+### This is fixing the comma issue in tandem with some weird SQL
+mfgBacklog['Customer'] = mfgBacklog['Customer'].str.replace('COMMAESCAPE', ',')
+### Should probably fix the root cause of this in the API
 mfgBacklog.sort_values(by='PartNum', ascending=True, inplace=True)
 
 # Split dataFrames by Mfg Center
@@ -38,16 +50,12 @@ proLineBacklog = mfgBacklog[mfgBacklog['Mfg Center'] == 'Pro line'].copy()
 
 # Save dataFrames to Excel
 
-def save_sheets(backlogDF, wbName):
-	writer = pd.ExcelWriter(os.path.join(homey, wbName))  # Creates a test excel file
-	backlogDF.to_excel(writer, 'Sheet')  # Fills the test excel with the whole timeline
-	writer.save()
 
 rackingFilename = 'Racking_Backlog.xlsx'
 proLineFilename = 'ProLine_Backlog.xlsx'
 
-save_sheets(rackingBacklog, rackingFilename)
-save_sheets(proLineBacklog, proLineFilename)
+save_sheet(rackingBacklog, rackingFilename, homey)
+save_sheet(proLineBacklog, proLineFilename, homey)
 
 # import email_tool
 
