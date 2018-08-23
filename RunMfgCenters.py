@@ -15,7 +15,7 @@ def run_query(dirPath, sqlFile, excelFile):
 
 def save_sheet(backlogDF, wbName, dirPath):
 	writer = pd.ExcelWriter(os.path.join(dirPath, wbName))  # Creates a test excel file
-	backlogDF.to_excel(writer, 'Sheet')  # Fills the test excel with the whole timeline
+	backlogDF.to_excel(writer, sheet_name='Sheet', index=False)  # Fills the test excel with the whole timeline
 	writer.save()
 
 
@@ -29,6 +29,8 @@ backlogFilenameExcel = 'MfgBacklog.xlsx'
 
 # Query FB for Mfg center info
 run_query(sqlPath, backlogFilenameTxt, backlogFilenameExcel)
+
+print('query complete ..')
 
 # Pull query results into pandas
 mfgBacklogFilepath = os.path.join(sqlPath, backlogFilenameExcel)
@@ -48,14 +50,18 @@ proLineBacklog = mfgBacklog[mfgBacklog['Mfg Center'] == 'Pro line'].copy()
 # plasticsBacklog = mfgBacklog[mfgBacklog['Mfg Center'] == 'Plastics'].copy()
 # labelsBacklog = mfgBacklog[mfgBacklog['Mfg Center'] == 'Labels'].copy()
 
+print('sheets ready ..')
+
 # Save dataFrames to Excel
 
 
 rackingFilename = 'Racking_Backlog.xlsx'
 proLineFilename = 'ProLine_Backlog.xlsx'
+cableAssyFilename = 'Cable_Assy_Backlog.xlsx'
 
 save_sheet(rackingBacklog, rackingFilename, homey)
 save_sheet(proLineBacklog, proLineFilename, homey)
+save_sheet(cableAssyBacklog, cableAssyFilename, homey)
 
 # import email_tool
 
@@ -64,4 +70,7 @@ save_sheet(proLineBacklog, proLineFilename, homey)
 
 # email_tool.send_email(rackingRecipientList, rackingFilename)
 # email_tool.send_email(proLineRecipientList, proLineFilename)
+# email_tool.send_email(cableAssyRecipientList, cableAssyFilename)
+
+print('done!')
 
